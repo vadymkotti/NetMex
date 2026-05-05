@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetMex - Library</title>
+    <style>
+        body {
+            background-color: #141414;
+            color: white;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            padding: 20px 50px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            color: #E50914;
+            font-size: 2rem;
+            font-weight: 900;
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+
+        .logout-btn {
+            background: #E50914;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 100px 50px 50px 50px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .movie-card {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: transform 0.4s ease;
+            cursor: pointer;
+            background: #222;
+            aspect-ratio: 2/3;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 10px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .movie-card:hover .movie-info {
+            opacity: 1;
+        }
+
+        .movie-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#" class="logo">NETMEX</a>
+        <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    </header>
+
+    <div class="content">
+        <h2 id="categoryTitle">Trending on <span id="serverDisplay">Server</span></h2>
+        <div class="movie-grid" id="movieGrid"></div>
+    </div>
+
+    <script>
+        const API_KEY = localStorage.getItem('netmex_api_key');
+        const SERVER_IP = localStorage.getItem('netmex_server');
+        
+        const BASE_URL = 'https://themoviedb.org';
+        const IMG_URL = 'https://tmdb.org';
+
+        if (!API_KEY) {
+            window.location.href = 'connect.html';
+        }
+
+        if (SERVER_IP) {
+            document.getElementById('serverDisplay').innerText = SERVER_IP;
+        }
+
+        async function fetchMovies() {
+            try {
+                const response = await fetch(`${BASE_URL}/trending/movie/week?api_key=${API_KEY}`);
+                const data = await response.json();
+                
+                if (data.results) {
+                    displayMovies(data.results);
+                } else {
+                    alert("Invalid API Key. Please reconnect.");
+                    logout();
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
+        }
+
+        function displayMovies(movies) {
+            const grid = document.getElementById('movieGrid');
+            grid.innerHTML = movies.map(movie => `
+                <div class="movie-card">
+                    <img src="${movie.poster_path ? IMG_URL + movie.poster_path : 'https://placeholder.com'}" alt="${movie.title}">
+                    <div class="movie-info">
+                        <p class="movie-title">${movie.title}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'connect.html';
+        }
+
+        fetchMovies();
+    </script>
+
+</body>
+</html>
